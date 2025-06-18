@@ -1,0 +1,65 @@
+[package]
+name = "wazuh-client"
+version = "0.1.0"
+edition = "2021"
+authors = ["Gianluca Brigandi <gbrigand@gmail.com>"]
+description = "A Rust client library for interacting with Wazuh API and Indexer"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/gbrigandi/wazuh-client-rs"
+documentation = "https://docs.rs/wazuh-client-rs"
+readme = "README.md"
+keywords = ["wazuh", "security", "siem", "api", "client"]
+categories = ["api-bindings", "network-programming", "web-programming::http-client"]
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json", "multipart"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.45", features = ["full"] }
+url = "2.5"
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.17", features = ["v4", "serde"] }
+thiserror = "2.0"
+log = "0.4"
+env_logger = "0.11"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tokio-test = "0.4"
+mockito = "1.7"
+wiremock = "0.6"
+
+[[example]]
+name = "basic_usage"
+path = "examples/basic_usage.rs"
+
+[[example]]
+name = "agent_management"
+path = "examples/agent_management.rs"
+
+[[example]]
+name = "cluster_monitoring"
+path = "examples/cluster_monitoring.rs"
+
+[[example]]
+name = "rule_management"
+path = "examples/rule_management.rs"
+
+[[example]]
+name = "log_analysis"
+path = "examples/log_analysis.rs"
+
+[[example]]
+name = "vulnerability_detection"
+path = "examples/vulnerability_detection.rs"
+
+[features]
+default = ["tls"]
+tls = ["reqwest/default-tls"]
+rustls = ["reqwest/rustls-tls"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
