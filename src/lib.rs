@@ -20,9 +20,17 @@ pub use cluster::{ClusterClient, ClusterNode, ClusterStatus, ManagerInfo, Manage
 pub use configuration::{
     AgentConfiguration, ConfigurationClient, GroupConfiguration, ManagerConfiguration,
 };
+
 pub use error::WazuhApiError;
+pub type Result<T> = std::result::Result<T, WazuhApiError>;
+
 pub use indexer_client::WazuhIndexerClient;
 pub use logs::{AnalysisdStats, LogCollectorStats, LogEntry, LogsClient, RemotedStats};
-pub use rules::{Decoder, Rule, RulesClient};
-pub use vulnerability::{Package, Port, Process, Vulnerability, VulnerabilityClient};
+pub use rules::{
+    Decoder, DecoderDetails, DecoderPatternDetail, InfoDetail, PatternDetail, Rule, RuleDetails,
+    RulesClient,
+};
+pub use vulnerability::{Package, Port, PortInfo, Process, Vulnerability, VulnerabilityClient};
 pub use wazuh_client::WazuhApiClient;
+
+pub use serde_json::Value as JsonValue;
