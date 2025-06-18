@@ -319,12 +319,12 @@ pub struct RuleDetails {
     #[serde(default, deserialize_with = "deserialize_string_or_vec")]
     pub if_group: Option<Vec<String>>,
     #[serde(rename = "match")]
-    pub match_obj: Option<PatternDetail>, 
+    pub match_obj: Option<PatternDetail>,
     #[serde(rename = "regex")]
-    pub regex_obj: Option<PatternDetail>, 
+    pub regex_obj: Option<PatternDetail>,
     pub order: Option<String>,
-    pub frequency: Option<String>, 
-    pub timeframe: Option<String>, 
+    pub frequency: Option<String>,
+    pub timeframe: Option<String>,
     pub ignore: Option<String>,
     #[serde(default, deserialize_with = "deserialize_empty_string_as_none_bool")]
     pub check_diff: Option<bool>,
@@ -333,17 +333,17 @@ pub struct RuleDetails {
         deserialize_with = "deserialize_vec_or_empty_map_as_option_vec"
     )]
     pub group: Option<Vec<String>>,
-    pub info: Option<Value>, 
+    pub info: Option<Value>,
     #[serde(default, deserialize_with = "deserialize_string_or_vec")]
     pub options: Option<Vec<String>>,
     #[serde(rename = "level")]
     pub level_detail: Option<PatternDetail>,
     pub alert_type: Option<PatternDetail>,
     pub fim_db_table: Option<PatternDetail>,
-    pub status: Option<PatternDetail>, 
-    pub action: Option<PatternDetail>, 
+    pub status: Option<PatternDetail>,
+    pub action: Option<PatternDetail>,
     #[serde(rename = "id")]
-    pub id_detail: Option<PatternDetail>, 
+    pub id_detail: Option<PatternDetail>,
     #[serde(rename = "cisco.severity")]
     pub cisco_severity_detail: Option<PatternDetail>,
     #[serde(rename = "win.system.severityValue")]
@@ -369,9 +369,9 @@ pub struct RuleDetails {
     #[serde(rename = "win.eventdata.scriptBlockText")]
     pub win_eventdata_scriptblocktext_detail: Option<PatternDetail>,
     #[serde(rename = "Severity")]
-    pub severity_detail: Option<PatternDetail>, 
+    pub severity_detail: Option<PatternDetail>,
     pub appcat: Option<PatternDetail>,
-    pub pri: Option<PatternDetail>, 
+    pub pri: Option<PatternDetail>,
     #[serde(rename = "audit.type")]
     pub audit_type_detail: Option<PatternDetail>,
     #[serde(rename = "audit.res")]
@@ -391,7 +391,7 @@ pub struct RuleDetails {
     #[serde(rename = "office365.Operation")]
     pub office365_operation_detail: Option<PatternDetail>,
     #[serde(rename = "office365.Parameters")]
-    pub office365_parameters_detail: Option<PatternDetail>, 
+    pub office365_parameters_detail: Option<PatternDetail>,
     #[serde(rename = "github.action")]
     pub github_action_detail: Option<PatternDetail>,
     #[serde(rename = "vuls.score")]
@@ -412,7 +412,7 @@ pub struct Decoder {
     pub filename: String,
     pub relative_dirname: String,
     pub status: String,
-    pub position: Option<u32>, 
+    pub position: Option<u32>,
     pub details: Option<DecoderDetails>,
 }
 
@@ -427,9 +427,9 @@ pub struct DecoderPatternDetail {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DecoderDetails {
     pub program_name: Option<String>,
-    pub order: Option<String>,                  
-    pub prematch: Option<DecoderPatternDetail>, 
-    pub regex: Option<DecoderPatternDetail>,    
+    pub order: Option<String>,
+    pub prematch: Option<DecoderPatternDetail>,
+    pub regex: Option<DecoderPatternDetail>,
     pub parent: Option<String>,
     pub use_own_name: Option<bool>,
     pub json_null_field: Option<String>,

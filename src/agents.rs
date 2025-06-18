@@ -50,7 +50,7 @@ pub struct AgentConnectionSummary {
     pub total: u32,
     pub active: u32,
     pub disconnected: u32,
-    #[serde(rename = "never_connected")] 
+    #[serde(rename = "never_connected")]
     pub never_connected: u32,
     pub pending: u32,
 }
@@ -119,6 +119,7 @@ impl AgentsClient {
         Self { api_client }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn get_agents(
         &mut self,
         limit: Option<u32>,

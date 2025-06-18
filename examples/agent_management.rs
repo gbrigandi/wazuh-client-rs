@@ -1,5 +1,5 @@
 //! Agent management example for the Wazuh Rust client
-//! 
+//!
 //! This example demonstrates:
 //! - Comprehensive agent lifecycle management
 //! - Agent registration and configuration
@@ -8,12 +8,12 @@
 //! - Agent maintenance operations
 
 use std::env;
-use tracing::{trace, warn, error};
-use wazuh_client::{WazuhClientFactory};
+use tracing::{error, trace, warn};
+use wazuh_client::WazuhClientFactory;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-   tracing_subscriber::fmt()
+    tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
@@ -28,8 +28,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("🔍 Testing connectivity...");
     let connectivity = factory.test_connectivity().await?;
     if !connectivity.api_connected {
-        error!("❌ Cannot connect to Wazuh API: {}", 
-               connectivity.api_error.as_deref().unwrap_or("Unknown error"));
+        error!(
+            "❌ Cannot connect to Wazuh API: {}",
+            connectivity.api_error.as_deref().unwrap_or("Unknown error")
+        );
         return Err("API connectivity failed".into());
     }
     println!("✅ Connected to Wazuh API");
@@ -38,23 +40,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n📊 Agent Overview");
     println!("==================");
-    
+
     let summary = agents_client.get_agents_summary().await?;
     println!("📈 Agent Statistics:");
     println!("   Total Agents: {}", summary.connection.total);
-    println!("   Active: {} ({:.1}%)", 
+    println!(
+        "   Active: {} ({:.1}%)",
         summary.connection.active,
         (summary.connection.active as f64 / summary.connection.total as f64) * 100.0
     );
-    println!("   Disconnected: {} ({:.1}%)", 
+    println!(
+        "   Disconnected: {} ({:.1}%)",
         summary.connection.disconnected,
         (summary.connection.disconnected as f64 / summary.connection.total as f64) * 100.0
     );
     println!("   Never Connected: {}", summary.connection.never_connected);
     println!("   Pending: {}", summary.connection.pending);
-    
+
     println!("\n⚙️  Configuration Status:");
-    println!("   Synced: {} ({:.1}%)", 
+    println!(
+        "   Synced: {} ({:.1}%)",
         summary.configuration.synced,
         (summary.configuration.synced as f64 / summary.configuration.total as f64) * 100.0
     );
@@ -62,42 +67,71 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n👥 Agent Inventory");
     println!("==================");
-    
-    let agents = agents_client.get_agents(
-        Some(20), // limit
-        None,     // offset
-        Some("id,name,ip,status,os.name,os.version,version,lastKeepAlive,group"), // select
-        Some("status,name"), // sort
-        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None).await?;
+
+    let agents = agents_client
+        .get_agents(
+            Some(20),                                                                 // limit
+            None,                                                                     // offset
+            Some("id,name,ip,status,os.name,os.version,version,lastKeepAlive,group"), // select
+            Some("status,name"),                                                      // sort
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        .await?;
 
     if agents.is_empty() {
         println!("No agents found in the system");
     } else {
         println!("Found {} agents:", agents.len());
         for agent in &agents {
-            let os_info = agent.os.as_ref()
-                .map(|os| format!("{} {}", 
-                    os.name.as_deref().unwrap_or("Unknown"),
-                    os.version.as_deref().unwrap_or("")))
+            let os_info = agent
+                .os
+                .as_ref()
+                .map(|os| {
+                    format!(
+                        "{} {}",
+                        os.name.as_deref().unwrap_or("Unknown"),
+                        os.version.as_deref().unwrap_or("")
+                    )
+                })
                 .unwrap_or_else(|| "Unknown OS".to_string());
-            
-            let groups = agent.group.as_ref()
+
+            let groups = agent
+                .group
+                .as_ref()
                 .map(|g| g.join(", "))
                 .unwrap_or_else(|| "default".to_string());
 
-            println!("   🔹 Agent {}: {} ({})", agent.id, agent.name, agent.status);
-            println!("      IP: {} | OS: {} | Version: {}", 
+            println!(
+                "   🔹 Agent {}: {} ({})",
+                agent.id, agent.name, agent.status
+            );
+            println!(
+                "      IP: {} | OS: {} | Version: {}",
                 agent.ip.as_deref().unwrap_or("N/A"),
                 os_info,
                 agent.version.as_deref().unwrap_or("N/A")
             );
-            let last_seen = agent.last_keep_alive.as_deref()
+            let last_seen = agent
+                .last_keep_alive
+                .as_deref()
                 .filter(|date| !date.starts_with("9999-"))
                 .unwrap_or("Never");
-            println!("      Groups: {} | Last Seen: {}", 
-                groups,
-                last_seen
-            );
+            println!("      Groups: {} | Last Seen: {}", groups, last_seen);
         }
     }
 
@@ -108,11 +142,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(active_agents) => {
             println!("✅ Active Agents: {}", active_agents.len());
             for agent in active_agents.iter().take(3) {
-                let last_seen = agent.last_keep_alive.as_deref()
+                let last_seen = agent
+                    .last_keep_alive
+                    .as_deref()
                     .filter(|date| !date.starts_with("9999-"))
                     .unwrap_or("Never");
-                println!("   • {} ({}) - Last seen: {}", 
-                    agent.name, 
+                println!(
+                    "   • {} ({}) - Last seen: {}",
+                    agent.name,
                     agent.ip.as_deref().unwrap_or("N/A"),
                     last_seen
                 );
@@ -125,11 +162,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(disconnected_agents) => {
             println!("\n⚠️  Disconnected Agents: {}", disconnected_agents.len());
             for agent in disconnected_agents.iter().take(3) {
-                let last_seen = agent.last_keep_alive.as_deref()
+                let last_seen = agent
+                    .last_keep_alive
+                    .as_deref()
                     .filter(|date| !date.starts_with("9999-"))
                     .unwrap_or("Never");
-                println!("   • {} ({}) - Last seen: {}", 
-                    agent.name, 
+                println!(
+                    "   • {} ({}) - Last seen: {}",
+                    agent.name,
                     agent.ip.as_deref().unwrap_or("N/A"),
                     last_seen
                 );
@@ -164,25 +204,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !agents.is_empty() {
         println!("\n🔧 Agent Maintenance");
         println!("====================");
-        
+
         // Get the first active agent (not the manager 000) for demonstration
-        if let Some(agent) = agents.iter().find(|a| a.status == "active" && a.id != "000") {
-            println!("🔍 Detailed information for agent: {} ({})", agent.name, agent.id);
-            
+        if let Some(agent) = agents
+            .iter()
+            .find(|a| a.status == "active" && a.id != "000")
+        {
+            println!(
+                "🔍 Detailed information for agent: {} ({})",
+                agent.name, agent.id
+            );
+
             // Get detailed agent information
             match agents_client.get_agent(&agent.id).await {
                 Ok(detailed_agent) => {
                     println!("   📋 Agent Details:");
-                    println!("      Registration IP: {}", 
-                        detailed_agent.register_ip.as_deref().unwrap_or("N/A"));
-                    println!("      Config Sum: {}", 
-                        detailed_agent.config_sum.as_deref().unwrap_or("N/A"));
-                    println!("      Merged Sum: {}", 
-                        detailed_agent.merged_sum.as_deref().unwrap_or("N/A"));
-                    println!("      Date Added: {}", 
-                        detailed_agent.date_add.as_deref().unwrap_or("N/A"));
+                    println!(
+                        "      Registration IP: {}",
+                        detailed_agent.register_ip.as_deref().unwrap_or("N/A")
+                    );
+                    println!(
+                        "      Config Sum: {}",
+                        detailed_agent.config_sum.as_deref().unwrap_or("N/A")
+                    );
+                    println!(
+                        "      Merged Sum: {}",
+                        detailed_agent.merged_sum.as_deref().unwrap_or("N/A")
+                    );
+                    println!(
+                        "      Date Added: {}",
+                        detailed_agent.date_add.as_deref().unwrap_or("N/A")
+                    );
                     if let Some(os) = &detailed_agent.os {
-                        println!("      OS Details: {} {} ({})", 
+                        println!(
+                            "      OS Details: {} {} ({})",
                             os.name.as_deref().unwrap_or("Unknown"),
                             os.version.as_deref().unwrap_or(""),
                             os.arch.as_deref().unwrap_or("Unknown arch")
@@ -207,13 +262,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(e) => warn!("Failed to get group sync status: {}", e),
             }
-
-       }
+        }
     }
 
     println!("\n👥 Group Management");
     println!("===================");
-    
+
     match agents_client.get_agents_no_group().await {
         Ok(no_group_agents) => {
             if !no_group_agents.is_empty() {
@@ -230,14 +284,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\n🔄 Update Status");
     println!("================");
-    
+
     match agents_client.get_outdated_agents().await {
         Ok(outdated_agents) => {
             if !outdated_agents.is_empty() {
                 println!("⚠️  Outdated agents found: {}", outdated_agents.len());
                 for agent in outdated_agents.iter().take(5) {
-                    println!("   • {} ({}) - Version: {}", 
-                        agent.name, 
+                    println!(
+                        "   • {} ({}) - Version: {}",
+                        agent.name,
                         agent.id,
                         agent.version.as_deref().unwrap_or("Unknown")
                     );
@@ -261,15 +316,17 @@ fn create_client_factory() -> WazuhClientFactory {
         .unwrap_or(55000);
     let api_username = env::var("WAZUH_API_USERNAME").unwrap_or_else(|_| "wazuh".to_string());
     let api_password = env::var("WAZUH_API_PASSWORD").unwrap_or_else(|_| "wazuh".to_string());
-    
+
     let indexer_host = env::var("WAZUH_INDEXER_HOST").unwrap_or_else(|_| "localhost".to_string());
     let indexer_port: u16 = env::var("WAZUH_INDEXER_PORT")
         .unwrap_or_else(|_| "9200".to_string())
         .parse()
         .unwrap_or(9200);
-    let indexer_username = env::var("WAZUH_INDEXER_USERNAME").unwrap_or_else(|_| "admin".to_string());
-    let indexer_password = env::var("WAZUH_INDEXER_PASSWORD").unwrap_or_else(|_| "admin".to_string());
-    
+    let indexer_username =
+        env::var("WAZUH_INDEXER_USERNAME").unwrap_or_else(|_| "admin".to_string());
+    let indexer_password =
+        env::var("WAZUH_INDEXER_PASSWORD").unwrap_or_else(|_| "admin".to_string());
+
     let verify_ssl = env::var("WAZUH_VERIFY_SSL")
         .unwrap_or_else(|_| "false".to_string())
         .parse()

@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::{debug, info};
 
-use super::wazuh_client::WazuhApiClient;
 use super::error::WazuhApiError;
+use super::wazuh_client::WazuhApiClient;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LogEntry {
@@ -388,4 +388,3 @@ impl LogsClient {
         Ok(ingestion_info)
     }
 }
-

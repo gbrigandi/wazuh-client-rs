@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tracing::{debug, info};
 
-use super::wazuh_client::WazuhApiClient;
 use super::error::WazuhApiError;
+use super::wazuh_client::WazuhApiClient;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AgentConfiguration {
@@ -41,9 +41,9 @@ pub struct GroupConfigurationItem {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct GroupConfiguration {
-    pub group_name: String, 
+    pub group_name: String,
     pub filters: Option<GroupFilters>,
-    pub config: Value, 
+    pub config: Value,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -378,4 +378,3 @@ impl ConfigurationClient {
         Ok(response)
     }
 }
-

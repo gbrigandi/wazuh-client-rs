@@ -303,7 +303,7 @@ impl ActiveResponseClient {
             } else {
                 Some(arguments)
             },
-            Some(false), 
+            Some(false),
             Some(alert),
         )
         .await

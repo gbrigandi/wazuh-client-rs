@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::{debug, info};
 
-use super::wazuh_client::WazuhApiClient;
 use super::error::WazuhApiError;
+use super::wazuh_client::WazuhApiClient;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ClusterStatus {
-    pub enabled: String, 
+    pub enabled: String,
     pub running: String,
 }
 
@@ -74,7 +74,7 @@ pub struct ManagerInfo {
     #[serde(rename = "type")]
     pub node_type: String,
     pub max_agents: String,
-    pub openssl_support: Option<String>, 
+    pub openssl_support: Option<String>,
     pub tz_offset: Option<String>,
     pub tz_name: Option<String>,
     pub installation_date: Option<String>,
@@ -83,7 +83,7 @@ pub struct ManagerInfo {
     pub license_path: Option<String>,
     pub home_path: Option<String>,
     pub share_path: Option<String>,
-    pub openssl_version: Option<String>, 
+    pub openssl_version: Option<String>,
     pub node_name: Option<String>,
     pub cluster_name: Option<String>,
 }
@@ -134,10 +134,10 @@ impl ClusterClient {
             .make_request(Method::GET, "/cluster/status", None, None)
             .await?;
 
-        let status_data = response
-            .get("data")
-            .ok_or_else(|| WazuhApiError::ApiError("Missing 'data' in cluster status response".to_string()))?;
-        
+        let status_data = response.get("data").ok_or_else(|| {
+            WazuhApiError::ApiError("Missing 'data' in cluster status response".to_string())
+        })?;
+
         let status: ClusterStatus = serde_json::from_value(status_data.clone())?;
         info!(
             "Retrieved cluster status: enabled={}, running={}",
@@ -261,7 +261,9 @@ impl ClusterClient {
             .and_then(|d| d.get("affected_items"))
             .and_then(|items| items.as_array())
             .and_then(|arr| arr.first())
-            .ok_or_else(|| WazuhApiError::ApiError("Missing manager process status data".to_string()))?;
+            .ok_or_else(|| {
+                WazuhApiError::ApiError("Missing manager process status data".to_string())
+            })?;
 
         let status: ProcessStatus = serde_json::from_value(status_data.clone())?;
         info!("Retrieved manager process status");
@@ -284,16 +286,16 @@ impl ClusterClient {
             .ok_or_else(|| WazuhApiError::ApiError("Missing manager status data".to_string()))?;
 
         let manager_info: ManagerInfo = serde_json::from_value(status_data.clone())?;
-        
+
         let status = ManagerStatus {
             wazuh_version: manager_info.version.clone(),
             // Ensure ManagerInfo.openssl_version is what's needed or adjust source
-            openssl_version: manager_info.openssl_version.unwrap_or_default(), 
+            openssl_version: manager_info.openssl_version.unwrap_or_default(),
             // Ensure ManagerInfo.installation_date is what's needed or adjust source
             compilation_date: manager_info.installation_date.unwrap_or_default(),
             version: manager_info.version,
         };
-        
+
         info!("Retrieved manager status: version={}", status.wazuh_version);
         Ok(status)
     }
@@ -316,7 +318,8 @@ impl ClusterClient {
         let info: ManagerInfo = serde_json::from_value(info_data.clone())?;
         info!(
             "Retrieved manager info: version={}, node_name={}",
-            info.version, info.node_name.as_deref().unwrap_or("unknown")
+            info.version,
+            info.node_name.as_deref().unwrap_or("unknown")
         );
         Ok(info)
     }
@@ -425,4 +428,3 @@ impl ClusterClient {
         Ok(response)
     }
 }
-

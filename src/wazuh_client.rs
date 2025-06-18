@@ -91,7 +91,7 @@ impl WazuhApiClient {
 
         let response_text = response.text().await?;
         debug!(?response_text, "Raw authentication response text");
-        
+
         let auth_response: AuthResponse = serde_json::from_str(&response_text)?;
         debug!(?auth_response, "Parsed authentication response");
         self.token = Some(auth_response.data.token);
@@ -162,7 +162,7 @@ impl WazuhApiClient {
 
             let retry_response = retry_request.send().await?;
             let retry_status = retry_response.status();
-            
+
             let retry_response_text = retry_response.text().await?;
             debug!(?retry_response_text, "Raw retry API response text");
 
@@ -175,11 +175,12 @@ impl WazuhApiClient {
                 });
             }
 
-            let retry_json_response: Value = serde_json::from_str(&retry_response_text).map_err(|e| {
-                error!("Failed to parse JSON retry response: {}", e);
-                WazuhApiError::ApiError(format!("Failed to parse JSON retry response: {}", e))
-            })?;
-            
+            let retry_json_response: Value =
+                serde_json::from_str(&retry_response_text).map_err(|e| {
+                    error!("Failed to parse JSON retry response: {}", e);
+                    WazuhApiError::ApiError(format!("Failed to parse JSON retry response: {}", e))
+                })?;
+
             debug!(?retry_json_response, "Parsed retry JSON response");
             return Ok(retry_json_response);
         }
@@ -194,14 +195,13 @@ impl WazuhApiClient {
         }
 
         debug!("API request successful");
-        
+
         let json_response: Value = serde_json::from_str(&response_text).map_err(|e| {
             error!("Failed to parse JSON response: {}", e);
             WazuhApiError::ApiError(format!("Failed to parse JSON response: {}", e))
         })?;
-        
+
         debug!(?json_response, "Parsed JSON response");
         Ok(json_response)
     }
 }
-

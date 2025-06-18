@@ -26,6 +26,7 @@ pub struct WazuhClientFactory {
 }
 
 impl WazuhClientFactory {
+    #![allow(clippy::too_many_arguments)]
     pub fn new(
         api_host: String,
         api_port: u16,
