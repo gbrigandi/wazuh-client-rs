@@ -100,7 +100,8 @@ impl WazuhClientFactory {
     pub fn create_vulnerability_client(&self) -> VulnerabilityClient {
         debug!("Creating Vulnerability client");
         let api_client = self.create_api_client();
-        VulnerabilityClient::new(api_client)
+        let indexer_client = self.create_indexer_client();
+        VulnerabilityClient::new(api_client, indexer_client)
     }
 
     pub fn create_active_response_client(&self) -> ActiveResponseClient {

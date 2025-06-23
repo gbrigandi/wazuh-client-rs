@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -43,6 +45,18 @@ pub struct AgentOs {
     pub uname: Option<String>,
     pub version: Option<String>,
     pub codename: Option<String>,
+}
+
+impl Display for AgentOs {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} {} {}",
+            self.platform.as_deref().unwrap_or("unknown"),
+            self.version.as_deref().unwrap_or("unknown"),
+            self.arch.as_deref().unwrap_or("unknown")
+        )
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

@@ -51,7 +51,7 @@ impl WazuhIndexerClient {
         }
     }
 
-    async fn make_indexer_request(
+    pub async fn make_indexer_request(
         &self,
         method: Method,
         endpoint: &str,
