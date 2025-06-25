@@ -168,24 +168,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(remoted_stats) => {
             println!("📡 Remote Communication Metrics:");
             println!("   TCP Sessions: {}", remoted_stats.tcp_sessions);
-            println!("   Event Count: {}", remoted_stats.evt_count);
-            println!("   Control Messages: {}", remoted_stats.ctrl_count);
-            println!("   Messages Sent: {}", remoted_stats.msg_sent);
             println!("   Bytes Received: {}", remoted_stats.recv_bytes);
+            println!("   Bytes Sent: {}", remoted_stats.sent_bytes);
             println!("   Discarded Messages: {}", remoted_stats.discarded_count);
             println!("   Queue Size: {}", remoted_stats.total_queue_size);
-
-            if remoted_stats.evt_count > 0 {
-                let avg_message_size =
-                    remoted_stats.recv_bytes as f64 / remoted_stats.evt_count as f64;
-                println!("   Average Message Size: {:.1} bytes", avg_message_size);
-            }
-
-            if remoted_stats.discarded_count > 0 {
-                let discard_rate =
-                    (remoted_stats.discarded_count as f64 / remoted_stats.evt_count as f64) * 100.0;
-                println!("   ⚠️  Message Discard Rate: {:.2}%", discard_rate);
-            }
         }
         Err(e) => warn!("Failed to get remote daemon stats: {}", e),
     }

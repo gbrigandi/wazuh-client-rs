@@ -85,14 +85,14 @@ pub struct AnalysisdStats {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RemotedStats {
-    pub total_queue_size: u64,
-    pub tcp_sessions: u64,
-    pub evt_count: u64,
-    pub ctrl_count: u64,
-    pub discarded_count: u64,
-    pub msg_sent: u64,
-    pub recv_bytes: u64,
-    pub dequeued_after_close: u64,
+    pub queue_size: f64,
+    pub total_queue_size: f64,
+    pub tcp_sessions: f64,
+    pub ctrl_msg_count: f64,
+    pub discarded_count: f64,
+    pub sent_bytes: f64,
+    pub recv_bytes: f64,
+    pub dequeued_after_close: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -352,8 +352,7 @@ impl LogsClient {
             },
             "remoted": {
                 "tcp_sessions": remoted_stats.tcp_sessions,
-                "events_count": remoted_stats.evt_count,
-                "messages_sent": remoted_stats.msg_sent,
+                "bytes_sent": remoted_stats.sent_bytes,
                 "bytes_received": remoted_stats.recv_bytes,
                 "discarded_count": remoted_stats.discarded_count
             }
