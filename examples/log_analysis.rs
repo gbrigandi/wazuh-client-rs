@@ -183,29 +183,57 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match logs_client.get_logcollector_stats(&agent.id).await {
             Ok(logcollector_stats) => {
                 println!("📋 Agent {} ({}) Log Collection:", agent.name, agent.id);
-                println!("   Events Collected: {}", logcollector_stats.events);
-                println!("   Events Dropped: {}", logcollector_stats.events_dropped);
-                println!("   Bytes Processed: {}", logcollector_stats.bytes);
+                
+                // Calculate totals from global period
+                let total_events: u64 = logcollector_stats.global.files.iter().map(|f| f.events).sum();
+                let total_bytes: u64 = logcollector_stats.global.files.iter().map(|f| f.bytes).sum();
+                let total_drops: u64 = logcollector_stats.global.files.iter()
+                    .flat_map(|f| &f.targets)
+                    .map(|t| t.drops)
+                    .sum();
 
-                if logcollector_stats.events > 0 {
-                    let avg_event_size =
-                        logcollector_stats.bytes as f64 / logcollector_stats.events as f64;
+                println!("   📊 Global Period ({} to {}):", 
+                    logcollector_stats.global.start, logcollector_stats.global.end);
+                println!("   Events Collected: {}", total_events);
+                println!("   Events Dropped: {}", total_drops);
+                println!("   Bytes Processed: {}", total_bytes);
+
+                if total_events > 0 {
+                    let avg_event_size = total_bytes as f64 / total_events as f64;
                     println!("   Average Event Size: {:.1} bytes", avg_event_size);
 
-                    if logcollector_stats.events_dropped > 0 {
-                        let drop_rate = (logcollector_stats.events_dropped as f64
-                            / logcollector_stats.events as f64)
-                            * 100.0;
+                    if total_drops > 0 {
+                        let drop_rate = (total_drops as f64 / total_events as f64) * 100.0;
                         println!("   ⚠️  Drop Rate: {:.2}%", drop_rate);
                     }
                 }
 
-                if !logcollector_stats.targets.is_empty() {
-                    println!("   📁 Log Targets:");
-                    for target in &logcollector_stats.targets {
-                        println!("     • {}: {} drops", target.name, target.drops);
+                // Show file breakdown
+                if !logcollector_stats.global.files.is_empty() {
+                    println!("   📁 Log Files:");
+                    for file in &logcollector_stats.global.files {
+                        println!("     • {}: {} events, {} bytes", 
+                            file.location, file.events, file.bytes);
+                        
+                        if !file.targets.is_empty() {
+                            for target in &file.targets {
+                                if target.drops > 0 {
+                                    println!("       └─ {}: {} drops", target.name, target.drops);
+                                }
+                            }
+                        }
                     }
                 }
+
+                // Show interval period if different from global
+                let interval_events: u64 = logcollector_stats.interval.files.iter().map(|f| f.events).sum();
+                if interval_events > 0 {
+                    let interval_bytes: u64 = logcollector_stats.interval.files.iter().map(|f| f.bytes).sum();
+                    println!("   ⏱️  Recent Interval ({} to {}):", 
+                        logcollector_stats.interval.start, logcollector_stats.interval.end);
+                    println!("     Events: {}, Bytes: {}", interval_events, interval_bytes);
+                }
+                
                 println!();
             }
             Err(e) => warn!(
@@ -351,6 +379,59 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             Err(e) => warn!("Failed to search for '{}': {}", term, e),
+        }
+    }
+
+    println!("\n🔍 Agent Ingestion Monitoring");
+    println!("==============================");
+
+    // Use the new monitor_agent_ingestion method
+    for agent in agents.iter().take(2) {
+        match logs_client.monitor_agent_ingestion(&agent.id).await {
+            Ok(ingestion_info) => {
+                println!("📊 Agent {} ({}) Ingestion Analysis:", agent.name, agent.id);
+                
+                if let Some(total_events) = ingestion_info.get("total_events").and_then(|v| v.as_u64()) {
+                    println!("   Total Events: {}", total_events);
+                }
+                
+                if let Some(bytes_processed) = ingestion_info.get("bytes_processed").and_then(|v| v.as_u64()) {
+                    println!("   Bytes Processed: {}", bytes_processed);
+                }
+                
+                if let Some(events_dropped) = ingestion_info.get("events_dropped").and_then(|v| v.as_u64()) {
+                    println!("   Events Dropped: {}", events_dropped);
+                }
+                
+                if let Some(drop_rate) = ingestion_info.get("drop_rate").and_then(|v| v.as_f64()) {
+                    if drop_rate > 0.0 {
+                        println!("   ⚠️  Drop Rate: {:.2}%", drop_rate);
+                        if drop_rate > 5.0 {
+                            println!("   💡 Consider investigating high drop rate");
+                        }
+                    }
+                }
+
+                // Show global period details
+                if let Some(global_period) = ingestion_info.get("global_period") {
+                    if let Some(files) = global_period.get("files").and_then(|v| v.as_array()) {
+                        println!("   📁 Active Log Sources: {}", files.len());
+                        for file in files.iter().take(3) {
+                            if let (Some(location), Some(events)) = (
+                                file.get("location").and_then(|v| v.as_str()),
+                                file.get("events").and_then(|v| v.as_u64())
+                            ) {
+                                if events > 0 {
+                                    println!("     • {}: {} events", location, events);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                println!();
+            }
+            Err(e) => warn!("Failed to monitor agent {} ingestion: {}", agent.id, e),
         }
     }
 

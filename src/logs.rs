@@ -16,9 +16,21 @@ pub struct LogEntry {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LogCollectorStats {
-    pub agent_id: String,
+    pub global: LogCollectorPeriod,
+    pub interval: LogCollectorPeriod,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct LogCollectorPeriod {
+    pub start: String,
+    pub end: String,
+    pub files: Vec<LogFile>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct LogFile {
+    pub location: String,
     pub events: u64,
-    pub events_dropped: u64,
     pub bytes: u64,
     pub targets: Vec<LogTarget>,
 }
@@ -235,8 +247,7 @@ impl LogsClient {
                 ))
             })?;
 
-        let mut stats: LogCollectorStats = serde_json::from_value(stats_data.clone())?;
-        stats.agent_id = agent_id.to_string();
+        let stats: LogCollectorStats = serde_json::from_value(stats_data.clone())?;
 
         info!(%agent_id, "Retrieved log collector statistics");
         Ok(stats)
@@ -370,17 +381,33 @@ impl LogsClient {
 
         let logcollector_stats = self.get_logcollector_stats(agent_id).await?;
 
+        let total_events: u64 = logcollector_stats.global.files.iter().map(|f| f.events).sum();
+        let total_bytes: u64 = logcollector_stats.global.files.iter().map(|f| f.bytes).sum();
+        let total_drops: u64 = logcollector_stats.global.files.iter()
+            .flat_map(|f| &f.targets)
+            .map(|t| t.drops)
+            .sum();
+
         let ingestion_info = serde_json::json!({
             "agent_id": agent_id,
-            "total_events": logcollector_stats.events,
-            "events_dropped": logcollector_stats.events_dropped,
-            "bytes_processed": logcollector_stats.bytes,
-            "drop_rate": if logcollector_stats.events > 0 {
-                (logcollector_stats.events_dropped as f64 / logcollector_stats.events as f64) * 100.0
+            "total_events": total_events,
+            "events_dropped": total_drops,
+            "bytes_processed": total_bytes,
+            "drop_rate": if total_events > 0 {
+                (total_drops as f64 / total_events as f64) * 100.0
             } else {
                 0.0
             },
-            "targets": logcollector_stats.targets
+            "global_period": {
+                "start": logcollector_stats.global.start,
+                "end": logcollector_stats.global.end,
+                "files": logcollector_stats.global.files
+            },
+            "interval_period": {
+                "start": logcollector_stats.interval.start,
+                "end": logcollector_stats.interval.end,
+                "files": logcollector_stats.interval.files
+            }
         });
 
         info!(%agent_id, "Retrieved agent ingestion monitoring data");
