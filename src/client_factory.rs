@@ -26,7 +26,15 @@ pub struct WazuhClientFactory {
 }
 
 impl WazuhClientFactory {
-    #![allow(clippy::too_many_arguments)]
+    pub fn builder() -> WazuhClientFactoryBuilder {
+        WazuhClientFactoryBuilder::default()
+    }
+
+    #[deprecated(
+        since = "0.2.0",
+        note = "Please use the builder pattern instead, e.g., `WazuhClientFactory::builder().build()`"
+    )]
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         api_host: String,
         api_port: u16,
@@ -39,20 +47,20 @@ impl WazuhClientFactory {
         verify_ssl: bool,
         protocol: Option<String>,
     ) -> Self {
-        debug!("Creating WazuhClientFactory");
+        let mut builder = Self::builder()
+            .api_host(api_host)
+            .api_port(api_port)
+            .api_credentials(api_username, api_password)
+            .indexer_host(indexer_host)
+            .indexer_port(indexer_port)
+            .indexer_credentials(indexer_username, indexer_password)
+            .verify_ssl(verify_ssl);
 
-        Self {
-            api_host,
-            api_port,
-            api_username,
-            api_password,
-            indexer_host,
-            indexer_port,
-            indexer_username,
-            indexer_password,
-            verify_ssl,
-            protocol: protocol.unwrap_or_else(|| "https".to_string()),
+        if let Some(protocol) = protocol {
+            builder = builder.protocol(protocol);
         }
+
+        builder.build()
     }
 
     pub fn create_api_client(&self) -> WazuhApiClient {
@@ -159,7 +167,7 @@ impl WazuhClientFactory {
         }
 
         let indexer_client = self.create_indexer_client();
-        match indexer_client.get_alerts().await {
+        match indexer_client.get_alerts(None).await {
             Ok(_) => {
                 indexer_status = true;
                 info!("Wazuh Indexer connectivity test: SUCCESS");
@@ -176,6 +184,85 @@ impl WazuhClientFactory {
             api_error,
             indexer_error,
         })
+    }
+}
+
+#[derive(Default)]
+pub struct WazuhClientFactoryBuilder {
+    api_host: Option<String>,
+    api_port: Option<u16>,
+    api_username: Option<String>,
+    api_password: Option<String>,
+    indexer_host: Option<String>,
+    indexer_port: Option<u16>,
+    indexer_username: Option<String>,
+    indexer_password: Option<String>,
+    verify_ssl: Option<bool>,
+    protocol: Option<String>,
+}
+
+impl WazuhClientFactoryBuilder {
+    pub fn api_host(mut self, api_host: impl Into<String>) -> Self {
+        self.api_host = Some(api_host.into());
+        self
+    }
+
+    pub fn api_port(mut self, api_port: u16) -> Self {
+        self.api_port = Some(api_port);
+        self
+    }
+
+    pub fn api_credentials(mut self, username: impl Into<String>, password: impl Into<String>) -> Self {
+        self.api_username = Some(username.into());
+        self.api_password = Some(password.into());
+        self
+    }
+
+    pub fn indexer_host(mut self, indexer_host: impl Into<String>) -> Self {
+        self.indexer_host = Some(indexer_host.into());
+        self
+    }
+
+    pub fn indexer_port(mut self, indexer_port: u16) -> Self {
+        self.indexer_port = Some(indexer_port);
+        self
+    }
+
+    pub fn indexer_credentials(
+        mut self,
+        username: impl Into<String>,
+        password: impl Into<String>,
+    ) -> Self {
+        self.indexer_username = Some(username.into());
+        self.indexer_password = Some(password.into());
+        self
+    }
+
+    pub fn verify_ssl(mut self, verify_ssl: bool) -> Self {
+        self.verify_ssl = Some(verify_ssl);
+        self
+    }
+
+    pub fn protocol(mut self, protocol: impl Into<String>) -> Self {
+        self.protocol = Some(protocol.into());
+        self
+    }
+
+    pub fn build(self) -> WazuhClientFactory {
+        debug!("Building WazuhClientFactory");
+
+        WazuhClientFactory {
+            api_host: self.api_host.unwrap_or_else(|| "localhost".to_string()),
+            api_port: self.api_port.unwrap_or(55000),
+            api_username: self.api_username.unwrap_or_else(|| "wazuh".to_string()),
+            api_password: self.api_password.unwrap_or_else(|| "wazuh".to_string()),
+            indexer_host: self.indexer_host.unwrap_or_else(|| "localhost".to_string()),
+            indexer_port: self.indexer_port.unwrap_or(9200),
+            indexer_username: self.indexer_username.unwrap_or_else(|| "admin".to_string()),
+            indexer_password: self.indexer_password.unwrap_or_else(|| "admin".to_string()),
+            verify_ssl: self.verify_ssl.unwrap_or(true),
+            protocol: self.protocol.unwrap_or_else(|| "https".to_string()),
+        }
     }
 }
 
@@ -234,18 +321,16 @@ mod tests {
 
     #[test]
     fn test_client_factory_creation() {
-        let factory = WazuhClientFactory::new(
-            "localhost".to_string(),
-            55000,
-            "wazuh".to_string(),
-            "password".to_string(),
-            "localhost".to_string(),
-            9200,
-            "admin".to_string(),
-            "admin".to_string(),
-            false,
-            Some("https".to_string()),
-        );
+        let factory = WazuhClientFactory::builder()
+            .api_host("localhost")
+            .api_port(55000)
+            .api_credentials("wazuh", "password")
+            .indexer_host("localhost")
+            .indexer_port(9200)
+            .indexer_credentials("admin", "admin")
+            .verify_ssl(false)
+            .protocol("https")
+            .build();
 
         let _agents_client = factory.create_agents_client();
         let _rules_client = factory.create_rules_client();

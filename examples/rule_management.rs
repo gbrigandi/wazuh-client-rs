@@ -359,16 +359,14 @@ fn create_client_factory() -> WazuhClientFactory {
         .parse()
         .unwrap_or(false);
 
-    WazuhClientFactory::new(
-        api_host,
-        api_port,
-        api_username,
-        api_password,
-        indexer_host,
-        indexer_port,
-        indexer_username,
-        indexer_password,
-        verify_ssl,
-        Some("https".to_string()),
-    )
+    WazuhClientFactory::builder()
+        .api_host(api_host)
+        .api_port(api_port)
+        .api_credentials(api_username, api_password)
+        .indexer_host(indexer_host)
+        .indexer_port(indexer_port)
+        .indexer_credentials(indexer_username, indexer_password)
+        .verify_ssl(verify_ssl)
+        .protocol("https")
+        .build()
 }

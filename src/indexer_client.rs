@@ -97,17 +97,18 @@ impl WazuhIndexerClient {
         })
     }
 
-    pub async fn get_alerts(&self) -> Result<Vec<Value>, WazuhApiError> {
+    pub async fn get_alerts(&self, limit: Option<u32>) -> Result<Vec<Value>, WazuhApiError> {
         let endpoint = "/wazuh-alerts*/_search";
+        let size = limit.unwrap_or(100);
         let query_body = json!({
-            "size": 100,
+            "size": size,
             "query": {
                 "match_all": {}
             },
         });
 
         debug!(%endpoint, ?query_body, "Preparing to get alerts from Wazuh Indexer");
-        info!("Retrieving up to 100 alerts from Wazuh Indexer");
+        info!("Retrieving up to {} alerts from Wazuh Indexer", size);
 
         let response = self
             .make_indexer_request(Method::POST, endpoint, Some(query_body))

@@ -333,14 +333,20 @@ impl LogsClient {
         Ok(response)
     }
 
-    pub async fn get_recent_errors(&mut self) -> Result<Vec<LogEntry>, WazuhApiError> {
+    pub async fn get_recent_errors(
+        &mut self,
+        limit: Option<u32>,
+    ) -> Result<Vec<LogEntry>, WazuhApiError> {
         debug!("Getting recent error logs");
-        self.get_error_logs(Some(100)).await
+        self.get_error_logs(limit).await
     }
 
-    pub async fn get_recent_warnings(&mut self) -> Result<Vec<LogEntry>, WazuhApiError> {
+    pub async fn get_recent_warnings(
+        &mut self,
+        limit: Option<u32>,
+    ) -> Result<Vec<LogEntry>, WazuhApiError> {
         debug!("Getting recent warning logs");
-        self.get_warning_logs(Some(100)).await
+        self.get_warning_logs(limit).await
     }
 
     pub async fn get_performance_metrics(&mut self) -> Result<Value, WazuhApiError> {
