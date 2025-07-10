@@ -1,6 +1,6 @@
 [package]
 name = "wazuh-client"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 authors = ["Gianluca Brigandi <gbrigand@gmail.com>"]
 description = "A Rust client library for interacting with Wazuh API and Indexer"

@@ -102,6 +102,7 @@ impl WazuhIndexerClient {
         let size = limit.unwrap_or(100);
         let query_body = json!({
             "size": size,
+            "sort": [{ "@timestamp": { "order": "desc" } }],
             "query": {
                 "match_all": {}
             },
