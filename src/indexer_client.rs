@@ -106,6 +106,9 @@ impl WazuhIndexerClient {
             "query": {
                 "match_all": {}
             },
+            "sort": [
+                { "timestamp": { "order": "desc" } }
+            ]
         });
 
         debug!(%endpoint, ?query_body, "Preparing to get alerts from Wazuh Indexer");
