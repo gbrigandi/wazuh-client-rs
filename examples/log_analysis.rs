@@ -183,17 +183,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match logs_client.get_logcollector_stats(&agent.id).await {
             Ok(logcollector_stats) => {
                 println!("📋 Agent {} ({}) Log Collection:", agent.name, agent.id);
-                
+
                 // Calculate totals from global period
-                let total_events: u64 = logcollector_stats.global.files.iter().map(|f| f.events).sum();
-                let total_bytes: u64 = logcollector_stats.global.files.iter().map(|f| f.bytes).sum();
-                let total_drops: u64 = logcollector_stats.global.files.iter()
+                let total_events: u64 = logcollector_stats
+                    .global
+                    .files
+                    .iter()
+                    .map(|f| f.events)
+                    .sum();
+                let total_bytes: u64 = logcollector_stats
+                    .global
+                    .files
+                    .iter()
+                    .map(|f| f.bytes)
+                    .sum();
+                let total_drops: u64 = logcollector_stats
+                    .global
+                    .files
+                    .iter()
                     .flat_map(|f| &f.targets)
                     .map(|t| t.drops)
                     .sum();
 
-                println!("   📊 Global Period ({} to {}):", 
-                    logcollector_stats.global.start, logcollector_stats.global.end);
+                println!(
+                    "   📊 Global Period ({} to {}):",
+                    logcollector_stats.global.start, logcollector_stats.global.end
+                );
                 println!("   Events Collected: {}", total_events);
                 println!("   Events Dropped: {}", total_drops);
                 println!("   Bytes Processed: {}", total_bytes);
@@ -212,9 +227,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if !logcollector_stats.global.files.is_empty() {
                     println!("   📁 Log Files:");
                     for file in &logcollector_stats.global.files {
-                        println!("     • {}: {} events, {} bytes", 
-                            file.location, file.events, file.bytes);
-                        
+                        println!(
+                            "     • {}: {} events, {} bytes",
+                            file.location, file.events, file.bytes
+                        );
+
                         if !file.targets.is_empty() {
                             for target in &file.targets {
                                 if target.drops > 0 {
@@ -226,14 +243,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 // Show interval period if different from global
-                let interval_events: u64 = logcollector_stats.interval.files.iter().map(|f| f.events).sum();
+                let interval_events: u64 = logcollector_stats
+                    .interval
+                    .files
+                    .iter()
+                    .map(|f| f.events)
+                    .sum();
                 if interval_events > 0 {
-                    let interval_bytes: u64 = logcollector_stats.interval.files.iter().map(|f| f.bytes).sum();
-                    println!("   ⏱️  Recent Interval ({} to {}):", 
-                        logcollector_stats.interval.start, logcollector_stats.interval.end);
-                    println!("     Events: {}, Bytes: {}", interval_events, interval_bytes);
+                    let interval_bytes: u64 = logcollector_stats
+                        .interval
+                        .files
+                        .iter()
+                        .map(|f| f.bytes)
+                        .sum();
+                    println!(
+                        "   ⏱️  Recent Interval ({} to {}):",
+                        logcollector_stats.interval.start, logcollector_stats.interval.end
+                    );
+                    println!(
+                        "     Events: {}, Bytes: {}",
+                        interval_events, interval_bytes
+                    );
                 }
-                
+
                 println!();
             }
             Err(e) => warn!(
@@ -390,19 +422,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         match logs_client.monitor_agent_ingestion(&agent.id).await {
             Ok(ingestion_info) => {
                 println!("📊 Agent {} ({}) Ingestion Analysis:", agent.name, agent.id);
-                
-                if let Some(total_events) = ingestion_info.get("total_events").and_then(|v| v.as_u64()) {
+
+                if let Some(total_events) =
+                    ingestion_info.get("total_events").and_then(|v| v.as_u64())
+                {
                     println!("   Total Events: {}", total_events);
                 }
-                
-                if let Some(bytes_processed) = ingestion_info.get("bytes_processed").and_then(|v| v.as_u64()) {
+
+                if let Some(bytes_processed) = ingestion_info
+                    .get("bytes_processed")
+                    .and_then(|v| v.as_u64())
+                {
                     println!("   Bytes Processed: {}", bytes_processed);
                 }
-                
-                if let Some(events_dropped) = ingestion_info.get("events_dropped").and_then(|v| v.as_u64()) {
+
+                if let Some(events_dropped) = ingestion_info
+                    .get("events_dropped")
+                    .and_then(|v| v.as_u64())
+                {
                     println!("   Events Dropped: {}", events_dropped);
                 }
-                
+
                 if let Some(drop_rate) = ingestion_info.get("drop_rate").and_then(|v| v.as_f64()) {
                     if drop_rate > 0.0 {
                         println!("   ⚠️  Drop Rate: {:.2}%", drop_rate);
@@ -419,7 +459,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         for file in files.iter().take(3) {
                             if let (Some(location), Some(events)) = (
                                 file.get("location").and_then(|v| v.as_str()),
-                                file.get("events").and_then(|v| v.as_u64())
+                                file.get("events").and_then(|v| v.as_u64()),
                             ) {
                                 if events > 0 {
                                     println!("     • {}: {} events", location, events);
@@ -428,7 +468,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                 }
-                
+
                 println!();
             }
             Err(e) => warn!("Failed to monitor agent {} ingestion: {}", agent.id, e),

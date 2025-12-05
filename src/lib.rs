@@ -30,7 +30,9 @@ pub use rules::{
     Decoder, DecoderDetails, DecoderPatternDetail, InfoDetail, PatternDetail, Rule, RuleDetails,
     RulesClient,
 };
-pub use vulnerability::{Package, Port, PortInfo, Process, Vulnerability, VulnerabilityClient, VulnerabilitySeverity};
+pub use vulnerability::{
+    Package, Port, PortInfo, Process, Vulnerability, VulnerabilityClient, VulnerabilitySeverity,
+};
 pub use wazuh_client::WazuhApiClient;
 
 pub use serde_json::Value as JsonValue;

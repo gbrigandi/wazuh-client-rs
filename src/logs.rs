@@ -387,9 +387,22 @@ impl LogsClient {
 
         let logcollector_stats = self.get_logcollector_stats(agent_id).await?;
 
-        let total_events: u64 = logcollector_stats.global.files.iter().map(|f| f.events).sum();
-        let total_bytes: u64 = logcollector_stats.global.files.iter().map(|f| f.bytes).sum();
-        let total_drops: u64 = logcollector_stats.global.files.iter()
+        let total_events: u64 = logcollector_stats
+            .global
+            .files
+            .iter()
+            .map(|f| f.events)
+            .sum();
+        let total_bytes: u64 = logcollector_stats
+            .global
+            .files
+            .iter()
+            .map(|f| f.bytes)
+            .sum();
+        let total_drops: u64 = logcollector_stats
+            .global
+            .files
+            .iter()
             .flat_map(|f| &f.targets)
             .map(|t| t.drops)
             .sum();

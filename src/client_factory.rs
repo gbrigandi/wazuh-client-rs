@@ -212,7 +212,11 @@ impl WazuhClientFactoryBuilder {
         self
     }
 
-    pub fn api_credentials(mut self, username: impl Into<String>, password: impl Into<String>) -> Self {
+    pub fn api_credentials(
+        mut self,
+        username: impl Into<String>,
+        password: impl Into<String>,
+    ) -> Self {
         self.api_username = Some(username.into());
         self.api_password = Some(password.into());
         self
